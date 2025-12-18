@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Выбери своего героя</title>
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --card:#121a2b;
+      --text:#eaf0ff;
+      --muted:#a9b5d6;
+      --accent:#7aa2ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #1b2a55 0%, var(--bg) 60%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .wrap{width:min(980px, 100%)}
+    header{margin-bottom:18px}
+    h1{margin:0 0 6px 0; font-size: clamp(24px, 3.2vw, 40px);}
+    p{margin:0; color:var(--muted)}
+    .grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    @media (max-width: 860px){
+      .grid{grid-template-columns:1fr; }
+    }
+    .card{
+      background: rgba(18,26,43,.85);
+      border:1px solid rgba(122,162,255,.25);
+      border-radius:16px;
+      overflow:hidden;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .card:hover{ transform: translateY(-2px); border-color: rgba(122,162,255,.6); }
+    .thumb{
+      width:100%;
+      aspect-ratio: 16/10;
+      object-fit: cover;
+      display:block;
+      background:#0f1526;
+    }
+    .card-body{padding:14px}
+    .name{font-weight:700; margin:0 0 6px 0}
+    .hint{margin:0; color:var(--muted); font-size:14px}
+    .screen{
+      display:none;
+      background: rgba(18,26,43,.65);
+      border: 1px solid rgba(122,162,255,.25);
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .screen.active{display:block}
+    .result{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+      align-items:start;
+    }
+    @media (max-width: 860px){
+      .result{grid-template-columns:1fr;}
+    }
+    .result img{
+      width:100%;
+      border-radius:14px;
+      border:1px solid rgba(122,162,255,.25);
+      display:block;
+      object-fit: cover;
+      max-height: 520px;
+    }
+    blockquote{
+      margin:0;
+      padding:14px 14px;
+      border-left: 4px solid var(--accent);
+      background: rgba(10,14,26,.55);
+      border-radius: 10px;
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 18px;
+    }
+    .meta{color:var(--muted); margin-top:10px; font-size:14px}
+    .btn{
+      margin-top:14px;
+      background: transparent;
+      border:1px solid rgba(122,162,255,.55);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+    .btn:hover{border-color: rgba(122,162,255,.9);}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- Экран выбора -->
+    <section id="pickScreen" class="screen active" aria-label="Выбор героя">
+      <header>
+        <h1>Выбери своего героя</h1>
+        <p>Нажми на персонажа — и узнаешь свою цитату.</p>
+      </header>
+
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- Экран результата -->
+    <section id="resultScreen"class="screen" aria-label="Результат">
+      <div class="result">
+        <div>
+          <img id="resultImage" alt="Результат" />
+        </div>
+        <div>
+          <h2 id="resultTitle" style="margin:0 0 10px 0;">Твой герой</h2>
+          <blockquote id="resultQuote"></blockquote>
+          <div class="meta" id="resultMeta"></div>
+          <button class="btn" id="backBtn" type="button">← Назад к выбору</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // 1) ЗАМЕНИТЕ здесь имена, пути к картинкам и цитаты на ваши
+    const heroes = [
+      {
+        id: "h1",
+        name: "Персонаж 1",
+        subtitle: "Описание/подсказка (необязательно)",
+        pickImage: "img/hero1.jpg",
+        resultImage: "img/result1.jpg",
+        quote: "Цитата №1 — вставьте вашу фразу сюда."
+      },
+      {
+        id: "h2",
+        name: "Персонаж 2",
+        subtitle: "Описание/подсказка (необязательно)",
+        pickImage: "img/hero2.jpg",
+        resultImage: "img/result2.jpg",
+        quote: "Цитата №2 — вставьте вашу фразу сюда."
+      },
+      {
+        id: "h3",
+        name: "Персонаж 3",
+        subtitle: "Описание/подсказка (необязательно)",
+        pickImage: "img/hero3.jpg",
+        resultImage: "img/result3.jpg",
+        quote: "Цитата №3 — вставьте вашу фразу сюда."
+      }
+    ];
+
+    const grid = document.getElementById("grid");
+    const pickScreen = document.getElementById("pickScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const resultImage = document.getElementById("resultImage");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultQuote = document.getElementById("resultQuote");
+    const resultMeta = document.getElementById("resultMeta");
+    const backBtn = document.getElementById("backBtn");
+
+    function showPick(){
+      resultScreen.classList.remove("active");
+      pickScreen.classList.add("active");
+      history.replaceState(null, "", location.pathname);
+    }
+
+    function showResult(hero){
+      pickScreen.classList.remove("active");
+      resultScreen.classList.add("active");
+
+      resultTitle.textContent = hero.name;
+      resultQuote.textContent = hero.quote;
+      resultImage.src = hero.resultImage;
+      resultImage.alt = `Результат: ${hero.name}`;
+      resultMeta.textContent = "Если хочешь — сделай скрин и отправь в чат 🙂";
+
+      // Чтобы можно было поделиться ссылкой на конкретный результат (необязательно)
+      history.replaceState(null, "", `?hero=${encodeURIComponent(hero.id)}`);
+    }
+
+    // Рендер карточек
+    heroes.forEach(hero => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img class="thumb" src="${hero.pickImage}" alt="${hero.name}">
+        <div class="card-body">
+          <p class="name">${hero.name}</p>
+          <p class="hint">${hero.subtitle ?? ""}</p>
+        </div>
+      `;
+      card.addEventListener("click", () => showResult(hero));
+      grid.appendChild(card);
+    });
+
+    backBtn.addEventListener("click", showPick);
+
+    // Если открыли ссылку вида ?hero=h2 — сразу показать результат
+    const params = new URLSearchParams(location.search);
+    const heroId = params.get("hero");
+    if (heroId){
+      const found = heroes.find(h => h.id === heroId);
+      if (found) showResult(found);
+    }
+  </script>
+</body>
+</html>
