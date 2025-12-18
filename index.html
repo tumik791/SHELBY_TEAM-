@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Выбери своего героя</title>
+  <title>Реши, кто ты?</title>
   <style>
     :root{
       --bg:#0b0f19;
@@ -110,8 +110,8 @@
     <!-- Экран выбора -->
     <section id="pickScreen" class="screen active" aria-label="Выбор героя">
       <header>
-        <h1>Выбери своего героя</h1>
-        <p>Нажми на персонажа — и узнаешь свою цитату.</p>
+        <h1>Какой ты сегодня?</h1>
+        <p>Нажми на персонажа — и узнаешь)</p>
       </header>
 
       <div class="grid" id="grid"></div>
@@ -139,27 +139,27 @@
     const heroes = [
       {
         id: "h1",
-        name: "Персонаж 1",
-        subtitle: "Описание/подсказка (необязательно)",
-        pickImage: "img/hero1.jpg",
-        resultImage: "img/result1.jpg",
-        quote: "Цитата №1 — вставьте вашу фразу сюда."
+        name: "Уверенный",
+        subtitle: "Спокойный, целеустремленный",
+        pickImage: "https://i.pinimg.com/originals/00/0c/d6/000cd6a42819660710c94a21e4806c3b.jpg",
+        resultImage: "https://allwebs.ru/images/2025/12/18/af7ee9b1cd41218af4029e2fa3a80eb2.jpg",
+        quote: "Как дела с рекламой?"
       },
       {
         id: "h2",
-        name: "Персонаж 2",
-        subtitle: "Описание/подсказка (необязательно)",
-        pickImage: "img/hero2.jpg",
-        resultImage: "img/result2.jpg",
-        quote: "Цитата №2 — вставьте вашу фразу сюда."
+        name: "Дерзкий",
+        subtitle: "Рвешься в бой(на заявки)",
+        pickImage: "https://avatars.mds.yandex.net/i?id=f66e5a45cddc217ac0ce873cee4c3922464cea4a-7718735-images-thumbs&n=13",
+        resultImage: "https://allwebs.ru/images/2025/12/18/e9bc0ed4caf6139572be1db4228b0b3e.jpg",
+        quote: "Как дела с оборотом?"
       },
       {
         id: "h3",
-        name: "Персонаж 3",
-        subtitle: "Описание/подсказка (необязательно)",
-        pickImage: "img/hero3.jpg",
-        resultImage: "img/result3.jpg",
-        quote: "Цитата №3 — вставьте вашу фразу сюда."
+        name: "На мурмулях",
+        subtitle: "На чиле, на раслабоне",
+        pickImage: "https://avatars.mds.yandex.net/i?id=9d133d44c9a32e5b6c7dadd62653c4c5013cc2ad-5107659-images-thumbs&n=13",
+        resultImage: "https://allwebs.ru/images/2025/12/18/716c8184492a4bd48d8e702faaf9c465.jpg",
+        quote: "Заявки сами по себе не появятся"
       }
     ];
 
@@ -187,7 +187,7 @@
       resultQuote.textContent = hero.quote;
       resultImage.src = hero.resultImage;
       resultImage.alt = `Результат: ${hero.name}`;
-      resultMeta.textContent = "Если хочешь — сделай скрин и отправь в чат 🙂";
+      resultMeta.textContent = "";
 
       // Чтобы можно было поделиться ссылкой на конкретный результат (необязательно)
       history.replaceState(null, "", `?hero=${encodeURIComponent(hero.id)}`);
@@ -219,4 +219,5 @@
     }
   </script>
 </body>
+
 </html>
