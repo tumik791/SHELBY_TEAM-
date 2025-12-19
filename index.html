@@ -1,9 +1,10 @@
+```html
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Реши, кто ты?</title>
+  <title>Какой ты сегодня?</title>
   <style>
     :root{
       --bg:#0b0f19;
@@ -80,6 +81,7 @@
       display:block;
       object-fit: cover;
       max-height: 520px;
+      cursor: pointer;
     }
     blockquote{
       margin:0;
@@ -110,7 +112,7 @@
     <!-- Экран выбора -->
     <section id="pickScreen" class="screen active" aria-label="Выбор героя">
       <header>
-        <h1>Какой ты сегодня?</h1>
+        <h1>Выбери своего героя</h1>
         <p>Нажми на персонажа — и узнаешь)</p>
       </header>
 
@@ -118,10 +120,10 @@
     </section>
 
     <!-- Экран результата -->
-    <section id="resultScreen"class="screen" aria-label="Результат">
+    <section id="resultScreen" class="screen" aria-label="Результат">
       <div class="result">
         <div>
-          <img id="resultImage" alt="Результат" />
+          <img id="resultImage" alt="Результат" title="Нажми на картинку, если нужно включить звук" />
         </div>
         <div>
           <h2 id="resultTitle" style="margin:0 0 10px 0;">Твой герой</h2>
@@ -132,10 +134,14 @@
       </div>
     </section>
 
+    <!-- Аудио (нужно для iPhone: звук стартует только по клику пользователя) -->
+    <audio id="heroAudio" preload="auto"></audio>
+
   </div>
 
   <script>
     // 1) ЗАМЕНИТЕ здесь имена, пути к картинкам и цитаты на ваши
+    // 2) Для 3-го героя добавьте musicUrl (вашассылка на аудио)
     const heroes = [
       {
         id: "h1",
@@ -159,14 +165,15 @@
         subtitle: "На чиле, на раслабоне",
         pickImage: "https://avatars.mds.yandex.net/i?id=9d133d44c9a32e5b6c7dadd62653c4c5013cc2ad-5107659-images-thumbs&n=13",
         resultImage: "https://allwebs.ru/images/2025/12/18/716c8184492a4bd48d8e702faaf9c465.jpg",
-        quote: "Заявки сами по себе не появятся"
+        quote: "Заявки сами по себе не появятся",
+        musicUrl: "https://rus.hitmotop.com/get/music/20230706/3_-_Zvuki_stonaZvuki_devushki_zvuki_krikovMEM_bassboost_reverb_76290123.mp3"
       },
-       {
+      {
         id: "h4",
         name: "На роскошном максимуме",
         subtitle: ")",
         pickImage: "https://avatars.mds.yandex.net/i?id=42d181c66ae3862e6e02b0b5fd1b530333e0ef8a-16463578-images-thumbs&n=13",
-        resultImage: "https://allwebs.ru/image/11060.doP8vd",
+        resultImage: "https://allwebs.ru/images/2025/12/19/198480bde90715602e55d0cbd03ef13b.md.jpg",
         quote: "Скорее ты на базовом минимуме"
       }
     ];
@@ -181,13 +188,45 @@
     const resultMeta = document.getElementById("resultMeta");
     const backBtn = document.getElementById("backBtn");
 
+    const heroAudio = document.getElementById("heroAudio");
+    let currentHero = null;
+
+    function stopAudio(){
+      heroAudio.pause();
+      heroAudio.currentTime = 0;
+      heroAudio.removeAttribute("src");
+      heroAudio.load();
+    }
+
+    async function playHeroAudio(hero){
+      if (!hero?.musicUrl) return;
+
+      // Важно для iPhone: play() должен быть вызван в рамках пользовательского действия (клика).
+      // Здесь оно так и будет (мы вызываем showResult прямо из обработчика клика).
+      heroAudio.src = hero.musicUrl;
+      heroAudio.load();
+
+      try {
+        await heroAudio.play();
+        resultMeta.textContent = "Звук включён.";
+      } catch (e) {
+        // Если iOS/браузер всё-таки заблокировал, оставим подсказку — клик по картинке снова запустит.
+        resultMeta.textContent = "Если звук не включился — нажми на картинку результата.";
+      }
+    }
+
     function showPick(){
+      stopAudio();
+      currentHero = null;
+
       resultScreen.classList.remove("active");
       pickScreen.classList.add("active");
       history.replaceState(null, "", location.pathname);
     }
 
     function showResult(hero){
+      currentHero = hero;
+
       pickScreen.classList.remove("active");
       resultScreen.classList.add("active");
 
@@ -195,7 +234,14 @@
       resultQuote.textContent = hero.quote;
       resultImage.src = hero.resultImage;
       resultImage.alt = `Результат: ${hero.name}`;
+
+      // По умолчанию выключаем прошлый звук и включаем новый только если есть musicUrl
+      stopAudio();
       resultMeta.textContent = "";
+
+      if (hero.musicUrl){
+        playHeroAudio(hero);
+      }
 
       // Чтобы можно было поделиться ссылкой на конкретный результат (необязательно)
       history.replaceState(null, "", `?hero=${encodeURIComponent(hero.id)}`);
@@ -212,13 +258,23 @@
           <p class="hint">${hero.subtitle ?? ""}</p>
         </div>
       `;
+
+      // Важно: звук стартует по клику пользователя (подходит для iPhone)
       card.addEventListener("click", () => showResult(hero));
+
       grid.appendChild(card);
     });
 
     backBtn.addEventListener("click", showPick);
 
-    // Если открыли ссылку вида ?hero=h2 — сразу показать результат
+    // Если звук не стартанул (ограничения iOS), пусть запускается по клику на картинку результата
+    resultImage.addEventListener("click", () => {
+      if (currentHero?.musicUrl && heroAudio.paused) {
+        playHeroAudio(currentHero);
+      }
+    });
+
+    // Если открыли ссылку вида ?hero=h2 — сразу показать результат (на iPhone звук сам не стартует без клика)
     const params = new URLSearchParams(location.search);
     const heroId = params.get("hero");
     if (heroId){
@@ -227,6 +283,5 @@
     }
   </script>
 </body>
-
 </html>
-
+```
