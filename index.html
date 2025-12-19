@@ -3,285 +3,379 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Какой ты сегодня?</title>
+  <title>Выбор героя</title>
   <style>
     :root{
       --bg:#0b0f19;
       --card:#121a2b;
-      --text:#eaf0ff;
-      --muted:#a9b5d6;
+      --text:#e8eefc;
+      --muted:#a7b3d6;
       --accent:#7aa2ff;
+      --danger:#ff6b6b;
+      --radius:16px;
     }
-    *{box-sizing:border-box}
+    *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 50% -10%, #1b2a55 0%, var(--bg) 60%);
+      background: radial-gradient(1200px 600px at 20% 10%, #1b2a5a 0%, transparent 55%),
+                  radial-gradient(1000px 600px at 80% 20%, #2a1b5a 0%, transparent 55%),
+                  var(--bg);
       color:var(--text);
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
     }
-    .wrap{width:min(980px, 100%)}
-    header{margin-bottom:18px}
-    h1{margin:0 0 6px 0; font-size: clamp(24px, 3.2vw, 40px);}
-    p{margin:0; color:var(--muted)}
+    .wrap{
+      width:min(1100px, 92vw);
+      margin:0 auto;
+      padding:24px 0 48px;
+    }
+    .screen{ display:none; }
+    .screen.active{ display:block; }
+    h1{ margin: 8px 0 10px; font-size: 28px; }
+    p{ margin: 0 0 16px; color:var(--muted); line-height:1.45; }
     .grid{
-      margin-top:18px;
       display:grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap:14px;
-    }
-    @media (max-width: 860px){
-      .grid{grid-template-columns:1fr; }
+      margin-top:18px;
     }
     .card{
-      background: rgba(18,26,43,.85);
-      border:1px solid rgba(122,162,255,.25);
-      border-radius:16px;
+      border:1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border-radius: var(--radius);
       overflow:hidden;
       cursor:pointer;
       transition: transform .12s ease, border-color .12s ease;
+      min-height:220px;
+      display:flex;
+      flex-direction:column;
     }
-    .card:hover{ transform: translateY(-2px); border-color: rgba(122,162,255,.6); }
+    .card:hover{ transform: translateY(-2px); border-color: rgba(122,162,255,0.45); }
     .thumb{
-      width:100%;
-      aspect-ratio: 16/10;
-      object-fit: cover;
-      display:block;
-      background:#0f1526;
+      height:150px;
+      background-size: cover;
+      background-position: center;
+      background-color: rgba(255,255,255,0.03);
     }
-    .card-body{padding:14px}
-    .name{font-weight:700; margin:0 0 6px 0}
-    .hint{margin:0; color:var(--muted); font-size:14px}
-    .screen{
-      display:none;
-      background: rgba(18,26,43,.65);
-      border: 1px solid rgba(122,162,255,.25);
-      border-radius: 16px;
-      padding: 18px;
+    .card .body{
+      padding:12px 12px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
     }
-    .screen.active{display:block}
+    .name{ font-weight:700; }
+    .small{ color:var(--muted); font-size:13px; }
     .result{
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:16px;
+      grid-template-columns: 1.15fr 1fr;
+      gap:18px;
+      margin-top:18px;
       align-items:start;
     }
     @media (max-width: 860px){
-      .result{grid-template-columns:1fr;}
+      .result{ grid-template-columns: 1fr; }
     }
-    .result img{
+    .panel{
+      border:1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border-radius: var(--radius);
+      padding:14px;
+    }
+    .result-img{
       width:100%;
-      border-radius:14px;
-      border:1px solid rgba(122,162,255,.25);
+      border-radius: calc(var(--radius) - 4px);
+      border:1px solid rgba(255,255,255,0.08);
       display:block;
-      object-fit: cover;
-      max-height: 520px;
-      cursor: pointer;
+      background:#0d1324;
+      user-select:none;
     }
     blockquote{
-      margin:0;
-      padding:14px 14px;
-      border-left: 4px solid var(--accent);
-      background: rgba(10,14,26,.55);
+      margin:12px 0 0;
+      padding:12px;
+      border-left:3px solid rgba(122,162,255,0.8);
+      background: rgba(0,0,0,0.18);
       border-radius: 10px;
       color: var(--text);
-      line-height: 1.5;
-      font-size: 18px;
     }
-    .meta{color:var(--muted); margin-top:10px; font-size:14px}
+    .meta{
+      margin-top:10px;
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 18px;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
     .btn{
-      margin-top:14px;
-      background: transparent;
-      border:1px solid rgba(122,162,255,.55);
+      appearance:none;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
       color:var(--text);
       padding:10px 12px;
-      border-radius:10px;
+      border-radius: 12px;
       cursor:pointer;
+      font-weight:600;
+      transition: transform .12s ease, border-color .12s ease;
     }
-    .btn:hover{border-color: rgba(122,162,255,.9);}
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(122,162,255,0.5); }
+    .btn.primary{ border-color: rgba(122,162,255,0.45); }
+    .btn.danger{ border-color: rgba(255,107,107,0.5); }
+    .hint{
+      margin-top:10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .badge{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.14);
+      color: var(--muted);
+      font-size: 12px;
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
-
     <!-- Экран выбора -->
-    <section id="pickScreen" class="screen active" aria-label="Выбор героя">
-      <header>
-        <h1>Выбери своего героя</h1>
-        <p>Нажми на персонажа — и узнаешь)</p>
-      </header>
-
-      <div class="grid" id="grid"></div>
+    <section id="pickScreen" class="screen active">
+      <h1>Выбери карточку</h1>
+      <p>На iPhone звук часто запускается только по “живому” нажатию. Поэтому мы стартуем аудио прямо в клике по карточке, а также даём кнопку “Включить звук”.</p>
+      <div class="grid" id="cardsGrid"></div>
+      <div class="hint">Если звука нет: 1) проверь, что iPhone не в беззвучном режиме, 2) ссылка на аудио должна быть прямой <span class="badge">https://… .mp3</span> (без страниц/редиректов).</div>
     </section>
 
     <!-- Экран результата -->
-    <section id="resultScreen" class="screen" aria-label="Результат">
+    <section id="resultScreen" class="screen">
+      <div class="row">
+        <button class="btn" id="backBtn" type="button">← Назад</button>
+        <button class="btn danger" id="stopBtn" type="button">Остановить звук</button>
+      </div>
+
       <div class="result">
-        <div>
-          <img id="resultImage" alt="Результат" title="Нажми на картинку, если нужно включить звук" />
+        <div class="panel">
+          <img id="resultImage" class="result-img" alt="Результат" />
+          <div class="hint">Если звук не включился — нажми на картинку или кнопку “Включить звук”.</div>
         </div>
-        <div>
-          <h2 id="resultTitle" style="margin:0 0 10px 0;">Твой герой</h2>
+
+        <div class="panel">
+          <h2 id="resultTitle" style="margin:6px 0 8px;"></h2>
           <blockquote id="resultQuote"></blockquote>
-          <div class="meta" id="resultMeta"></div>
-          <button class="btn" id="backBtn" type="button">← Назад к выбору</button>
+
+          <div class="row">
+            <button class="btn primary" id="soundBtn" type="button" style="display:none;">Включить звук</button>
+          </div>
+
+          <div id="resultMeta" class="meta"></div>
         </div>
       </div>
     </section>
-
-    <!-- Аудио (нужно для iPhone: звук стартует только по клику пользователя) -->
-    <audio id="heroAudio" preload="auto"></audio>
-
   </div>
 
   <script>
-    // 1) ЗАМЕНИТЕ здесь имена, пути к картинкам и цитаты на ваши
-    // 2) Для 3-го героя добавьте musicUrl (вашассылка на аудио)
+    // ВАЖНО: теперь музыка ТОЛЬКО в hero3. В hero1/hero2 музыки нет.
+    // musicUrl должен быть прямой ссылкой на файл (mp3/m4a) по https.
     const heroes = [
       {
-        id: "h1",
-        name: "Уверенный",
-        subtitle: "Спокойный, целеустремленный",
-        pickImage: "https://i.pinimg.com/originals/00/0c/d6/000cd6a42819660710c94a21e4806c3b.jpg",
-        resultImage: "https://allwebs.ru/images/2025/12/18/af7ee9b1cd41218af4029e2fa3a80eb2.jpg",
-        quote: "Как дела с рекламой?"
+        id: "hero1",
+        name: "Герой 1",
+        quote: "Цитата героя 1",
+        cardImage: "https://picsum.photos/seed/hero1/600/400",
+        resultImage: "https://picsum.photos/seed/hero1r/900/700",
+        musicUrl: ""
       },
       {
-        id: "h2",
-        name: "Дерзкий",
-        subtitle: "Рвешься в бой(на заявки)",
-        pickImage: "https://avatars.mds.yandex.net/i?id=f66e5a45cddc217ac0ce873cee4c3922464cea4a-7718735-images-thumbs&n=13",
-        resultImage: "https://allwebs.ru/images/2025/12/18/e9bc0ed4caf6139572be1db4228b0b3e.jpg",
-        quote: "Как дела с оборотом?"
+        id: "hero2",
+        name: "Герой 2",
+        quote: "Цитата героя 2",
+        cardImage: "https://picsum.photos/seed/hero2/600/400",
+        resultImage: "https://picsum.photos/seed/hero2r/900/700",
+        musicUrl: ""
       },
       {
-        id: "h3",
-        name: "На мурмулях",
-        subtitle: "На чиле, на раслабоне",
-        pickImage: "https://avatars.mds.yandex.net/i?id=9d133d44c9a32e5b6c7dadd62653c4c5013cc2ad-5107659-images-thumbs&n=13",
-        resultImage: "https://allwebs.ru/images/2025/12/18/716c8184492a4bd48d8e702faaf9c465.jpg",
-        quote: "Заявки сами по себе не появятся",
-        musicUrl: "https://drive.google.com/file/d/11fXSPsYhNaJq2tFQkp3xyAantJEXkB6c/view?usp=drivesdk"
-      },
-      {
-        id: "h4",
-        name: "На роскошном максимуме",
-        subtitle: ")",
-        pickImage: "https://avatars.mds.yandex.net/i?id=42d181c66ae3862e6e02b0b5fd1b530333e0ef8a-16463578-images-thumbs&n=13",
-        resultImage: "https://allwebs.ru/images/2025/12/19/198480bde90715602e55d0cbd03ef13b.md.jpg",
-        quote: "Скорее ты на базовом минимуме"
+        id: "hero3",
+        name: "Герой 3 (с музыкой)",
+        quote: "Цитата героя 3",
+        cardImage: "https://picsum.photos/seed/hero3/600/400",
+        resultImage: "https://picsum.photos/seed/hero3r/900/700",
+        musicUrl: "https://rus.hitmotop.com/get/music/20230706/3_-_Zvuki_stonaZvuki_devushki_zvuki_krikovMEM_bassboost_reverb_76290123.mp3"
       }
     ];
 
-    const grid = document.getElementById("grid");
+    // DOM
     const pickScreen = document.getElementById("pickScreen");
     const resultScreen = document.getElementById("resultScreen");
+    const cardsGrid = document.getElementById("cardsGrid");
 
-    const resultImage = document.getElementById("resultImage");
     const resultTitle = document.getElementById("resultTitle");
     const resultQuote = document.getElementById("resultQuote");
+    const resultImage = document.getElementById("resultImage");
     const resultMeta = document.getElementById("resultMeta");
-    const backBtn = document.getElementById("backBtn");
 
-    const heroAudio = document.getElementById("heroAudio");
+    const backBtn = document.getElementById("backBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const soundBtn = document.getElementById("soundBtn");
+
+    // Audio: один общий объект
+    const heroAudio = new Audio();
+    heroAudio.preload = "none";
+    heroAudio.playsInline = true;
+
     let currentHero = null;
 
-    function stopAudio(){
-      heroAudio.pause();
-      heroAudio.currentTime = 0;
-      heroAudio.removeAttribute("src");
-      heroAudio.load();
+    function setMeta(text) {
+      resultMeta.textContent = text || "";
     }
 
-    async function playHeroAudio(hero){
-      if (!hero?.musicUrl) return;
+    function stopAudio() {
+      try {
+        heroAudio.pause();
+        heroAudio.currentTime = 0;
+        heroAudio.removeAttribute("src");
+      } catch (e) {}
+    }
 
-      // Важно для iPhone: play() должен быть вызван в рамках пользовательского действия (клика).
-      // Здесь оно так и будет (мы вызываем showResult прямо из обработчика клика).
-      heroAudio.src = hero.musicUrl;
-      heroAudio.load();
+    function playHeroAudio(hero) {
+      if (!hero || !hero.musicUrl) {
+        setMeta("У этого героя нет музыки.");
+        return;
+      }
 
       try {
-        await heroAudio.play();
-        resultMeta.textContent = "Звук включён.";
-      } catch (e) {
-        // Если iOS/браузер всё-таки заблокировал, оставим подсказку — клик по картинке снова запустит.
-        resultMeta.textContent = "Нажми на картинку, будет еще прикол";
+        heroAudio.pause();
+        heroAudio.currentTime = 0;
+      } catch (e) {}
+
+      heroAudio.muted = false;
+      heroAudio.volume = 1;
+      heroAudio.src = hero.musicUrl;
+
+      const p = heroAudio.play();
+      if (p && typeof p.then === "function") {
+        p.then(() => setMeta("Звук включён."))
+         .catch((err) => {
+           console.log("Audio play blocked:", err);
+           setMeta("Звук заблокирован браузером. Нажми «Включить звук» или по картинке результата.");
+         });
+      } else {
+        setMeta("Попытка включить звук выполнена.");
       }
     }
 
-    function showPick(){
-      stopAudio();
-      currentHero = null;
-
+    function showPick() {
       resultScreen.classList.remove("active");
       pickScreen.classList.add("active");
-      history.replaceState(null, "", location.pathname);
+      setMeta("");
     }
 
-    function showResult(hero){
+    function showResult(hero) {
       currentHero = hero;
 
       pickScreen.classList.remove("active");
       resultScreen.classList.add("active");
 
       resultTitle.textContent = hero.name;
-      resultQuote.textContent = hero.quote;
-      resultImage.src = hero.resultImage;
+      resultQuote.textContent = hero.quote || "";
+      resultImage.src = hero.resultImage || hero.cardImage || "";
       resultImage.alt = `Результат: ${hero.name}`;
 
-      // По умолчанию выключаем прошлый звук и включаем новый только если есть musicUrl
-      stopAudio();
-      resultMeta.textContent = "";
+      soundBtn.style.display = hero.musicUrl ? "inline-block" : "none";
 
-      if (hero.musicUrl){
-        playHeroAudio(hero);
+      if (hero.musicUrl) {
+        setMeta("Если звука нет — нажми «Включить звук» (или по картинке).");
+      } else {
+        setMeta("Музыка не задана.");
       }
 
-      // Чтобы можно было поделиться ссылкой на конкретный результат (необязательно)
-      history.replaceState(null, "", `?hero=${encodeURIComponent(hero.id)}`);
+      const url = new URL(window.location.href);
+      url.searchParams.set("hero", hero.id);
+      history.replaceState(null, "", url.toString());
     }
 
-    // Рендер карточек
-    heroes.forEach(hero => {
+    function createCard(hero) {
       const card = document.createElement("div");
       card.className = "card";
-      card.innerHTML = `
-        <img class="thumb" src="${hero.pickImage}" alt="${hero.name}">
-        <div class="card-body">
-          <p class="name">${hero.name}</p>
-          <p class="hint">${hero.subtitle ?? ""}</p>
-        </div>
-      `;
 
-      // Важно: звук стартует по клику пользователя (подходит для iPhone)
-      card.addEventListener("click", () => showResult(hero));
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+      thumb.style.backgroundImage = hero.cardImage ? `url("${hero.cardImage}")` : "none";
 
-      grid.appendChild(card);
-    });
+      const body = document.createElement("div");
+      body.className = "body";
 
-    backBtn.addEventListener("click", showPick);
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = hero.name;
 
-    // Если звук не стартанул (ограничения iOS), пусть запускается по клику на картинку результата
-    resultImage.addEventListener("click", () => {
-      if (currentHero?.musicUrl && heroAudio.paused) {
-        playHeroAudio(currentHero);
-      }
-    });
+      const small = document.createElement("div");
+      small.className = "small";
+      small.textContent = hero.musicUrl ? "Есть музыка" : "Без музыки";
 
-    // Если открыли ссылку вида ?hero=h2 — сразу показать результат (на iPhone звук сам не стартует без клика)
-    const params = new URLSearchParams(location.search);
-    const heroId = params.get("hero");
-    if (heroId){
-      const found = heroes.find(h => h.id === heroId);
-      if (found) showResult(found);
+      body.appendChild(name);
+      body.appendChild(small);
+
+      card.appendChild(thumb);
+      card.appendChild(body);
+
+      card.addEventListener("click", () => {
+        stopAudio();
+        if (hero.musicUrl) playHeroAudio(hero);
+        showResult(hero);
+      });
+
+      return card;
     }
+
+    function renderCards() {
+      cardsGrid.innerHTML = "";
+      heroes.forEach((hero) => cardsGrid.appendChild(createCard(hero)));
+    }
+
+    soundBtn.addEventListener("click", () => {
+      stopAudio();
+      if (currentHero) playHeroAudio(currentHero);
+    });
+
+    resultImage.addEventListener("click", () => {
+      stopAudio();
+      if (currentHero) playHeroAudio(currentHero);
+    });
+
+    backBtn.addEventListener("click", () => {
+      stopAudio();
+      showPick();
+
+      const url = new URL(window.location.href);
+      url.searchParams.delete("hero");
+      history.replaceState(null, "", url.toString());
+    });
+
+    stopBtn.addEventListener("click", () => {
+      stopAudio();
+      setMeta("Звук остановлен.");
+    });
+
+    heroAudio.addEventListener("ended", () => setMeta("Трек закончился."));
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stopAudio();
+    });
+
+    function initFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const heroId = params.get("hero");
+      if (!heroId) return;
+
+      const hero = heroes.find((h) => h.id === heroId);
+      if (hero) showResult(hero);
+    }
+
+    renderCards();
+    initFromUrl();
   </script>
 </body>
 </html>
-
-
